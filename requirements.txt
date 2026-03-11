@@ -1,0 +1,6 @@
+python-dotenv>=0.19.0
+geopandas>=0.13.0
+folium>=0.14.0
+mapclassify>=2.5.0
+pandas>=1.5.0
+numpy>=1.24.0
