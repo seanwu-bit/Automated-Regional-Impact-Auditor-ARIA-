@@ -1,55 +1,70 @@
-# 🌊 ARIA Project: Automated Regional Impact Auditor
-**全台河川避難所綜合風險評估與韌性稽核系統**
+🌀 ARIA v2.0: 全自動區域受災衝擊評估系統 (地形整合版)
+本專案為 ARIA 系統的 2.0 升級版，針對特定縣市（預設為宜蘭縣）的避難收容所，整合向量資料（河川、行政區界）與網格資料（內政部 20m DEM），進行極端降雨情境下的「複合地形風險」評估。
 
-本專案結合地理空間分析 (GIS) 與數據科學，針對台灣各行政區進行河川洪災避難資源的「韌性稽核」。透過自動化腳本分析避難設施的空間分佈安全性與資源缺口，為防災決策提供科學化依據。
+🛠️ 技術工作流 (Workflow)
+本分析流程主要分為六個核心步驟：
 
-註：因檔案大小問題，Windsurf上傳專案有網路超時問題，故本次檔案係以手動方式上傳。
+環境建置與參數設定 (Environment Setup)
 
----
+讀取 .env 設定檔，動態載入風險門檻參數（如 SLOPE_THRESHOLD=30, ELEVATION_LOW=50, BUFFER_HIGH=500）與目標評估縣市。
 
-## 🤖 AI 協作診斷日誌 (AI Diagnostic Log)
+自動下載內政部 20m DEM 網格資料、水利署河川圖資與消防署避難所向量資料。
 
-本專案開發過程中，透過 AI 協作進行了深度的技術排除與邏輯預處理，確保大規模 GIS 運算既精確又具備決策意義。
+向量資料預處理 (Vector Preprocessing)
 
-### 🐛 關鍵錯誤排除 (Debugged Issues)
+將避難所與河川資料統一投影至 EPSG:3826 (TWD97)，確保後續空間計算單位為公尺。
 
-* **SSL 憑證與 API 連線錯誤 (`SSLCertVerificationError`)**
-    * **現象**：直接讀取政府 Open Data API 時，因安全性憑證驗證失敗導致下載中斷。
-    * **排除**：改採本機圖資管理，並使用原生字串處理路徑，確保讀取穩定。
-* **核心運算卡死 (`Kernel Pending`)**
-    * **現象**：河川圖資節點數過大，執行 `buffer` 與 `sjoin` 時耗盡記憶體。
-    * **排除**：引入 `.simplify(50)` 幾何簡化技術，在不影響精度前提下降低 90% 運算負擔。
-* **變數生存期遺失 (`NameError`)**
-    * **現象**：重啟 Kernel 後導致分析結果遺失，視覺化階段報錯。
-    * **排除**：實施數據持久化機制，將結果即時存入 `outputs/`，視覺化模組自動偵測並讀取緩存。
-* **欄位名稱不匹配 (`KeyError`)**
-    * **現象**：`reset_index()` 後標題因編碼問題無法被讀取。
-    * **排除**：導入「強健索引技術」，改用 `iloc[:, 0]` 絕對位置抓取標籤。
-* **圖表排版重疊 (`Layout Overlap`)**
-    * **現象**：三 Y 軸圖表標題與圖例空間擠壓。
-    * **排除**：調校 `subplots_adjust` 與 `bbox_to_anchor` 參數，預留頂部空間，確保報表規格。
+裁切目標縣市範圍，並計算每個避難所距離最近河川的直線距離 (river_distance_m)。
 
----
+網格資料處理與坡度計算 (Raster Processing & Slope Calculation)
 
-### ⚙️ 系統預處理 (Preprocessing & Logic Optimizations)
+使用 rioxarray 載入 DEM，並依據目標縣市的幾何邊界進行精確裁切 (Clip)，大幅降低記憶體消耗。
 
-在Gemini Prompt中預先植入以下邏輯處理：
+運用 numpy.gradient 搭配 DEM 的像素解析度 (Resolution)，計算每個網格單元的坡度，並轉換為「度數 (Degrees)」。
 
-* **空間坐標系標準化 (CRS Alignment)**：
-    將所有圖資統一預處理為 **EPSG:3826** (TWD97 投影坐標)，確保緩衝區距離計算為精確的「公尺」。
-    
-* **幾何特徵預處理 (Geometry Simplification)**：
-    在空間交集前簡化河道節點，大幅提升大規模地理資料之運算效率。
-    [Image of GIS spatial join and buffer analysis]
+空間分析與分區統計 (Zonal Statistics)
 
-* **多重依賴權重工程 (Weighted Feature Engineering)**：
-    捨棄單一數量指標，改採 **「空間依賴權重 (Dependency Score)」** 指標：
-    $$Dependency Score = \frac{(High \times 3 + Med \times 2 + Low \times 1)}{Total Count}$$
-    
-* **跨維度指標正規化 (Min-Max Normalization)**：
-    將「空間依賴度」與「人數缺口」縮放至 $0 \sim 1$ 區間再進行加權排名，避免規模數據掩蓋脆弱性指標。
-    [Image of normalization process in data analysis]
+以各避難所為中心，建立 500 公尺半徑的環域 (Buffer)。
 
-* **地方審計自動化模組 (Regional Audit Automation)**：
-    預先撰寫名稱校正邏輯與篩選器，支援一鍵生成特定縣市的局部審計報告。
+透過 rasterstats.zonal_stats 提取每個環域內的 DEM 與坡度網格資訊，計算出各避難所周遭的「平均高程 (mean_elevation)」與「最大坡度 (max_slope)」。
 
+複合風險邏輯判定 (Composite Risk Logic)
+
+結合向量與網格分析結果，依據複合條件矩陣進行風險分級：
+
+極高風險 (Critical)：距離河川 < 500m 且 高程 < 50m，或周邊最大坡度 > 30度。
+
+高風險 (High)：距離河川 < 500m 且 高程 >= 50m，或周邊最大坡度 20~30度。
+
+中度風險 (Moderate)：距離河川 500m~1000m，或周邊最大坡度 10~20度。
+
+低風險 (Low)：距離河川 > 1000m 且 坡度 < 10度。
+
+視覺化與資料匯出 (Visualization & Export)
+
+產生帶有光影立體感的地形陰影圖 (Hillshade) 作為底圖，疊加依風險等級分色的避難所點位，輸出 terrain_risk_map.png。
+
+彙整最終分析結果，匯出 terrain_risk_audit.csv 供後續決策與 GIS 軟體使用。
+
+📝 AI 診斷日誌 (AI Diagnostic Log)
+在開發與處理異質空間資料（Vector + Raster）的過程中，系統實作了以下除錯與預處理機制：
+
+1. 空間參考系統 (CRS) 不匹配防護
+診斷情境：原始避難所資料為 EPSG:4326，河川資料為 EPSG:3826，而 DEM 雖標示為 EPSG:3826 但若未嚴格對齊，會導致 Spatial Join 或環域計算發生嚴重位移與報錯。
+
+預處理方案：在所有空間運算（Buffer, Zonal Stats, Clip）發生前，強制執行 .to_crs(epsg=3826)，並在讀取 DEM 時透過 rio.write_crs(3826, inplace=True) 確保網格資料的座標系統正確註冊。
+
+2. 巨量網格資料 (Large Raster) 記憶體溢出
+診斷情境：全台 20m DEM 檔案龐大，若直接在全台範圍進行矩陣的坡度計算 (np.gradient)，極易造成執行環境記憶體不足 (OOM) 而崩潰。
+
+預處理方案：改變運算順序。先利用向量的縣市邊界對 DEM 執行 rio.clip 裁切，僅針對目標縣市範圍產生小範圍子網格 (Sub-raster) 後，再進行矩陣運算，有效將記憶體消耗與運算時間降至最低。
+
+3. Zonal Statistics 的仿射轉換 (Affine Transform) 精度丟失
+診斷情境：將 GeoDataFrame 的 Polygon 傳入 rasterstats 時，若未正確給予裁切後 DEM 的 Transform 屬性，會抓取到錯誤的網格數值或產生大量 Null 值。
+
+預處理方案：明確提取裁切後 DEM 的 affine 矩陣與 nodata 值，確保 zonal_stats 函式能精確對齊網格與向量邊界，並妥善排除無效網格值的干擾。
+
+4. 坡度計算的單位轉換異常
+診斷情境：直接使用 NumPy 梯度計算出來的數值為比值 (Rise over Run)，而非直觀的角度，會導致後續 SLOPE_THRESHOLD 的邏輯判斷完全失效。
+
+預處理方案：在梯度計算中精確除以 DEM 的實際空間解析度 (Resolution, dx/dy)，並透過 np.arctan 與 np.degrees 將弧度轉為角度，確保坡度數值精準落在 0~90 度的合理物理範圍內。
