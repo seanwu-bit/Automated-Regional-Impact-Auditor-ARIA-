@@ -1,55 +1,75 @@
-# 🌊 ARIA Project: Automated Regional Impact Auditor
-**全台河川避難所綜合風險評估與韌性稽核系統**
+🌀 ARIA v3: 鳳凰颱風動態避難風險評估系統 (Fungwong)
+本專案開發於 2026 年 3 月，旨在針對颱風期間的花蓮與宜蘭地區，整合 CWA 氣象即時數據、W4 地形風險圖資與 Gemini AI 戰術建議，建構一套自動化的動態災防儀表板。
 
-本專案結合地理空間分析 (GIS) 與數據科學，針對台灣各行政區進行河川洪災避難資源的「韌性稽核」。透過自動化腳本分析避難設施的空間分佈安全性與資源缺口，為防災決策提供科學化依據。
+🛠️ 技術工作流 (Workflow)
+本程式依據以下五個核心階段進行自動化運算：
 
-註：因檔案大小問題，Windsurf上傳專案有網路超時問題，故本次檔案係以手動方式上傳。
+Step 1: 資料獲取與正規化 (Data Acquisition)
 
----
+讀取 .env 配置（支援 LIVE 實時模式與 SIMULATION 模擬模式）。
 
-## 🤖 AI 協作診斷日誌 (AI Diagnostic Log)
+透過 CWA API 抓取全台雨量站 JSON，並進行欄位正規化，統一提取 rain_1hr, rain_3hr, rain_24hr。
 
-本專案開發過程中，透過 AI 協作進行了深度的技術排除與邏輯預處理，確保大規模 GIS 運算既精確又具備決策意義。
+Step 2: 地理編碼與預處理 (Geoprocessing)
 
-### 🐛 關鍵錯誤排除 (Debugged Issues)
+載入避難所 CSV 並轉換為 GeoDataFrame。
 
-* **SSL 憑證與 API 連線錯誤 (`SSLCertVerificationError`)**
-    * **現象**：直接讀取政府 Open Data API 時，因安全性憑證驗證失敗導致下載中斷。
-    * **排除**：改採本機圖資管理，並使用原生字串處理路徑，確保讀取穩定。
-* **核心運算卡死 (`Kernel Pending`)**
-    * **現象**：河川圖資節點數過大，執行 `buffer` 與 `sjoin` 時耗盡記憶體。
-    * **排除**：引入 `.simplify(50)` 幾何簡化技術，在不影響精度前提下降低 90% 運算負擔。
-* **變數生存期遺失 (`NameError`)**
-    * **現象**：重啟 Kernel 後導致分析結果遺失，視覺化階段報錯。
-    * **排除**：實施數據持久化機制，將結果即時存入 `outputs/`，視覺化模組自動偵測並讀取緩存。
-* **欄位名稱不匹配 (`KeyError`)**
-    * **現象**：`reset_index()` 後標題因編碼問題無法被讀取。
-    * **排除**：導入「強健索引技術」，改用 `iloc[:, 0]` 絕對位置抓取標籤。
-* **圖表排版重疊 (`Layout Overlap`)**
-    * **現象**：三 Y 軸圖表標題與圖例空間擠壓。
-    * **排除**：調校 `subplots_adjust` 與 `bbox_to_anchor` 參數，預留頂部空間，確保報表規格。
+執行座標轉換，將原始經緯度 (EPSG:4326) 投影至 EPSG:3826 (TWD97) 以進行精確的公尺級空間運算。
 
----
+Step 3: 空間分析與動態風險分級 (Spatial Analysis)
 
-### ⚙️ 系統預處理 (Preprocessing & Logic Optimizations)
+環域判定：以強降雨測站為中心建立 5 公里 Buffer。
 
-在Gemini Prompt中預先植入以下邏輯處理：
+精準配對：使用 sjoin_nearest 將每個避難所綁定地理距離最近的測站。
 
-* **空間坐標系標準化 (CRS Alignment)**：
-    將所有圖資統一預處理為 **EPSG:3826** (TWD97 投影坐標)，確保緩衝區距離計算為精確的「公尺」。
-    
-* **幾何特徵預處理 (Geometry Simplification)**：
-    在空間交集前簡化河道節點，大幅提升大規模地理資料之運算效率。
-    [Image of GIS spatial join and buffer analysis]
+矩陣分級：結合「地形風險」與「即時降雨」判定四個風險等級：CRITICAL, URGENT, WARNING, SAFE。
 
-* **多重依賴權重工程 (Weighted Feature Engineering)**：
-    捨棄單一數量指標，改採 **「空間依賴權重 (Dependency Score)」** 指標：
-    $$Dependency Score = \frac{(High \times 3 + Med \times 2 + Low \times 1)}{Total Count}$$
-    
-* **跨維度指標正規化 (Min-Max Normalization)**：
-    將「空間依賴度」與「人數缺口」縮放至 $0 \sim 1$ 區間再進行加權排名，避免規模數據掩蓋脆弱性指標。
-    [Image of normalization process in data analysis]
+Step 4: 地圖可視化繪製 (Folium Mapping)
 
-* **地方審計自動化模組 (Regional Audit Automation)**：
-    預先撰寫名稱校正邏輯與篩選器，支援一鍵生成特定縣市的局部審計報告。
+建構互動式地圖，整合 HeatMap (降雨熱區)、雨量站點（半徑隨雨量動態變化）與避難所標記。
 
+Step 5: AI 戰術顧問與最終輸出 (AI Tactical Advisor)
+
+針對指揮官指定的避難所目標，將即時觀測數據餵給 Gemini 2.5 Flash。
+
+生成具體的防災應變建議，並以「紫色星星」醒目提示於地圖 Popup 中。
+
+📝 AI 診斷日誌：開發挑戰與解決方案
+在開發過程中，我們遇到了數個關鍵技術障礙，並透過以下程式邏輯予以解決：
+
+1. 數據「消失」與 0mm 顯示錯誤
+問題：在 Spatial Join 之後，避難所的 Popup 顯示雨量為 0mm，但測站明明有數據。
+
+成因：左側避難所資料表原先存在同名的空欄位，導致 gpd.sjoin 產生 rain_1hr_right 衝突，導致主邏輯讀取不到數值。
+
+解決方案：在執行 Join 前，強制執行 drop(columns=...) 清除避難所所有舊有的雨量與測站欄位，確保數據「強制覆蓋」並維持欄位名稱純淨。
+
+2. 最近測站配對不準確
+問題：避難所顯示的不是地理上最近的測站。
+
+成因：初版邏輯使用 sjoin (intersects) 判斷，若點落在多個環域重疊區，會隨機選取或選取雨量最大者，而非最近者。
+
+解決方案：引進 gpd.sjoin_nearest。這保證了不論距離遠近，每個避難所都能精準鎖定絕對距離最短的氣象站，實現「一所一站」的精確觀測配對。
+
+3. Gemini API 404/503 異常
+問題：呼叫 AI 時出現 404 Not Found 或 503 Service Unavailable。
+
+成因：Google 持續更新模型名稱（如從 1.5 升級至 2.5），且免費版 API 易受伺服器負載影響。
+
+解決方案：
+
+自動偵測：程式碼加入 genai.list_models()，自動搜尋當下環境中可用的最新 Flash 模型。
+
+重試機制 (Retry Logic)：針對 503 錯誤加入 3 次自動重試（間隔 5 秒），確保在高負載時仍有機會取得建議。
+
+4. 空間結合索引衝突 (index_right)
+問題：連續執行兩次空間結合時報錯 ValueError: 'index_right' cannot be a column name。
+
+解決方案：在第二次結合前手動偵測並刪除 index_right 欄位，確保空間運算的管道 (Pipeline) 暢通無阻。
+
+🛡️ 預先部署的防範機制 (Hardening)
+時雨量優先原則：若避難所同時受多個警戒區影響，系統自動以 rain_1hr (時雨量) 進行降冪排序並去重，優先呈現最具威脅性的即時雨勢。
+
+資料正規化防呆：針對 CWA JSON 欄位（如 Past1hr 與 Past1Hr）的大小寫差異進行模糊匹配，防止因氣象署 API 更新欄位命名而導致系統當機。
+
+Google Drive 自動備份：預設路徑指向 /content/drive/MyDrive/ARIA_outputs/，確保在 Colab 工作階段斷開後，產出的 .html 檔案仍妥善儲存於雲端。
