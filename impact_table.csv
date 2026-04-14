@@ -1,0 +1,49 @@
+asset,type,location,W4_terrain_risk,W7_centrality_rank,lake_hit,landslide_hit,debris_hit,notes
+Shelter_48,W3 Shelter (In View),Guangfu Vicinity,Low,-,N,N,Y,At Risk
+Shelter_49,W3 Shelter (In View),Guangfu Vicinity,Low,-,N,N,Y,At Risk
+Shelter_55,W3 Shelter (In View),Guangfu Vicinity,Low,-,N,N,Y,At Risk
+Shelter_63,W3 Shelter (In View),Guangfu Vicinity,Low,-,N,N,Y,At Risk
+Shelter_64,W3 Shelter (In View),Guangfu Vicinity,Low,-,N,N,Y,At Risk
+Shelter_65,W3 Shelter (In View),Guangfu Vicinity,Low,-,N,N,Y,At Risk
+Shelter_66,W3 Shelter (In View),Guangfu Vicinity,Low,-,N,N,Y,At Risk
+Shelter_71,W3 Shelter (In View),Guangfu Vicinity,Low,-,N,N,Y,At Risk
+Shelter_72,W3 Shelter (In View),Guangfu Vicinity,Low,-,N,N,Y,At Risk
+Shelter_46,W3 Shelter (In View),Guangfu Vicinity,Low,-,N,N,Y,At Risk
+Shelter_47,W3 Shelter (In View),Guangfu Vicinity,Low,-,N,N,Y,At Risk
+Shelter_77,W3 Shelter (In View),Guangfu Vicinity,Low,-,N,N,Y,At Risk
+Shelter_78,W3 Shelter (In View),Guangfu Vicinity,Low,-,N,N,Y,At Risk
+Shelter_81,W3 Shelter (In View),Guangfu Vicinity,Low,-,N,N,Y,At Risk
+Shelter_80,W3 Shelter (In View),Guangfu Vicinity,Low,-,N,N,Y,At Risk
+Shelter_83,W3 Shelter (In View),Guangfu Vicinity,Low,-,N,N,Y,At Risk
+2125115177,W7 Bottleneck,Route,Medium,1,N,N,Y,Blocked
+7485437310,W7 Bottleneck,Route,Medium,3,N,N,Y,Blocked
+2550637106,W7 Bottleneck,Route,Medium,4,N,N,Y,Blocked
+13183614991,W7 Bottleneck,Route,Medium,5,N,N,Y,Blocked
+光復國小,W8 Guangfu Node,Guangfu,High,-,N,N,Y,CRITICAL
+佛祖街沉積區中心,W8 Guangfu Node,Guangfu,High,-,N,N,Y,CRITICAL
+Shelter_50,W3 Shelter (In View),Guangfu Vicinity,Low,-,N,N,N,Safe
+Shelter_51,W3 Shelter (In View),Guangfu Vicinity,Low,-,N,N,N,Safe
+Shelter_52,W3 Shelter (In View),Guangfu Vicinity,Low,-,N,N,N,Safe
+Shelter_54,W3 Shelter (In View),Guangfu Vicinity,Low,-,N,N,N,Safe
+Shelter_56,W3 Shelter (In View),Guangfu Vicinity,Low,-,N,N,N,Safe
+Shelter_58,W3 Shelter (In View),Guangfu Vicinity,Low,-,N,N,N,Safe
+Shelter_61,W3 Shelter (In View),Guangfu Vicinity,Low,-,N,N,N,Safe
+Shelter_62,W3 Shelter (In View),Guangfu Vicinity,Low,-,N,N,N,Safe
+Shelter_68,W3 Shelter (In View),Guangfu Vicinity,Low,-,N,N,N,Safe
+Shelter_69,W3 Shelter (In View),Guangfu Vicinity,Low,-,N,N,N,Safe
+Shelter_45,W3 Shelter (In View),Guangfu Vicinity,Low,-,N,N,N,Safe
+Shelter_73,W3 Shelter (In View),Guangfu Vicinity,Low,-,N,N,N,Safe
+Shelter_74,W3 Shelter (In View),Guangfu Vicinity,Low,-,N,N,N,Safe
+Shelter_75,W3 Shelter (In View),Guangfu Vicinity,Low,-,N,N,N,Safe
+Shelter_79,W3 Shelter (In View),Guangfu Vicinity,Low,-,N,N,N,Safe
+Shelter_82,W3 Shelter (In View),Guangfu Vicinity,Low,-,N,N,N,Safe
+Shelter_85,W3 Shelter (In View),Guangfu Vicinity,Low,-,N,N,N,Safe
+Shelter_84,W3 Shelter (In View),Guangfu Vicinity,Low,-,N,N,N,Safe
+Shelter_44,W3 Shelter (In View),Guangfu Vicinity,Low,-,N,N,N,Safe
+Shelter_59,W3 Shelter (In View),Guangfu Vicinity,Low,-,N,N,N,Safe
+Shelter_67,W3 Shelter (In View),Guangfu Vicinity,Low,-,N,N,N,Safe
+Shelter_76,W3 Shelter (In View),Guangfu Vicinity,Low,-,N,N,N,Safe
+601381079,W7 Bottleneck,Route,Medium,2,N,N,N,Clear
+光復火車站,W8 Guangfu Node,Guangfu,High,-,N,N,N,Safe
+光復鄉公所,W8 Guangfu Node,Guangfu,High,-,N,N,N,Safe
+台9線馬太鞍溪橋,W8 Guangfu Node,Guangfu,High,-,N,N,N,Safe
